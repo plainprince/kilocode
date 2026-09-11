@@ -215,6 +215,15 @@ interface TopNavProps {
   showMobileMenuButton?: boolean
 }
 
+function preview(url: string) {
+  if (typeof window === "undefined" || !URL.canParse(url)) return url
+
+  const value = new URL(url)
+  if (value.hostname !== "kilo.ai" || !value.pathname.startsWith("/docs")) return url
+
+  return `${window.location.origin}${value.pathname}${value.search}${value.hash}`
+}
+
 export function TopNav({ onMobileMenuToggle, isMobileMenuOpen = false, showMobileMenuButton = true }: TopNavProps) {
   const router = useRouter()
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -250,6 +259,12 @@ export function TopNav({ onMobileMenuToggle, isMobileMenuOpen = false, showMobil
       indexName: process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || "docsearch",
       apiKey: process.env.NEXT_PUBLIC_ALGOLIA_API_KEY || "24b09689d5b4223813d9b8e48563c8f6",
       askAi: process.env.NEXT_PUBLIC_ALGOLIA_ASSISTANT_ID || "askAIDemo",
+      transformItems(items) {
+        return items.map((item) => ({
+          ...item,
+          url: preview(item.url),
+        }))
+      },
     })
   }, [])
 
@@ -331,15 +346,6 @@ export function TopNav({ onMobileMenuToggle, isMobileMenuOpen = false, showMobil
             onClose={handleDropdownClose}
           />
         </div>
-      </div>
-
-      {/* Announcement banner */}
-      <div className="announcement-banner">
-        <p>
-          The all-new Kilo Code extension is here, rebuilt on the{" "}
-          <Link href="/code-with-ai/platforms/vscode/whats-new">Kilo CLI</Link> for speed, flexibility, and continued access to 500+ models via the Kilo Gateway
-          →
-        </p>
       </div>
 
       <style jsx>{`
@@ -526,35 +532,6 @@ export function TopNav({ onMobileMenuToggle, isMobileMenuOpen = false, showMobil
 
           .right-actions {
             gap: 0.5rem;
-          }
-        }
-
-        .announcement-banner {
-          background: var(--bg-secondary);
-          color: var(--text-color);
-          padding: 0.5rem 1rem;
-          text-align: center;
-          font-size: 0.875rem;
-          border-bottom: 1px solid var(--border-color);
-        }
-
-        .announcement-banner p {
-          margin: 0;
-        }
-
-        .announcement-banner :global(a) {
-          color: var(--accent-color);
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-
-        .announcement-banner :global(a:hover) {
-          color: var(--accent-hover);
-        }
-
-        @media (max-width: 768px) {
-          .announcement-banner {
-            font-size: 0.8rem;
           }
         }
       `}</style>
